@@ -1,0 +1,9 @@
+FROM debian:bullseye
+
+RUN 
+
+COPY
+
+EXPOSED
+
+ENTRYPOINT
