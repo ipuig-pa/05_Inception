@@ -1,9 +1,19 @@
 FROM debian:bullseye
 
-RUN 
+RUN apt-get update && apt-get install -y\
+	nginx \
+	openssl
 
-COPY
+RUN mkdir -p /etc/nginx/ssl
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/nginx.key \
+    -out /etc/nginx/ssl/nginx.crt \
+    -subj "/C=DE/ST=BW/O=42HN/CN=$DOMAIN_NAME" 
 
-EXPOSED
+COPY ./conf/nginx.conf /etc/nginx/conf.d/default.conf
 
-ENTRYPOINT
+EXPOSE 443
+
+#ENTRYPOINT
+
+CMD ["nginx", "-g", "daemon off;"]
