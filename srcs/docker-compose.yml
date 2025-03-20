@@ -33,11 +33,11 @@ services:
 #      - inception_network
 #    restart: always
 
-#  mariadb:
-#    build:
-#      context: /requirements/mariadb
-#      dockerfile: Dockerfile
-#    container_name: mariadb
+  mariadb:
+    build:
+      context: /requirements/mariadb
+      dockerfile: Dockerfile
+    container_name: mariadb
 #    depends_on:
 #    environment:
 #    volumes:
