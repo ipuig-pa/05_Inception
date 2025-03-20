@@ -6,62 +6,77 @@ services:
       context: ./requirements/nginx
       dockerfile: Dockerfile
     container_name: nginx
-#    depends_on:
-#      - wordpress
-#    environment:
-#    secrets:
-#    volumes:
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+    volumes:
+      - website:/var/www/html
     ports:
-      - "80:80"
-#    networks:
-#      - inception_network
+      - "443:443"
+    depends_on:
+      - wordpress
+    networks:
+      - inception_network
     restart: always
-
-#  wordpress:
-#    build:
-#      context: /requirements/wordpress
-#      dockerfile: Dockerfile
-#    container_name: wordpress
-#    depends_on:
-#      - mariadb
-#    environment:
-#    volumes:
-#      - website
-#      - database
-#    secrets:
-#    networks:
-#      - inception_network
-#    restart: always
 
   mariadb:
     build:
-      context: /requirements/mariadb
+      context: ./requirements/mariadb
       dockerfile: Dockerfile
     container_name: mariadb
-#    depends_on:
-#    environment:
-#    volumes:
-#      -database
-#    secrets:
-#    networks:
-#      - inception_network
-#    restart: always
+    env_file:
+      - .env
+    volumes:
+      - database:/var/lib/mysql
+    secrets:
+      - wp_db_root_password
+      - wp_db_password
+    networks:
+      - inception_network
+    restart: always
 
-#volumes:
-#  website:
-#    driver: local
-#    driver_opts:
-#      type: none
-#      device: /hom/${USER}/data
-#      o: bind
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    container_name: wordpress
+    env_file:
+      - .env
+    volumes:
+      - website:/var/www/html
+      - database:/var/lib/mysql
+    secrets:
+      - wp_user_password
+      - wp_admin_password
+    depends_on:
+      - mariadb
+    networks:
+      - inception_network
+    restart: always
 
-#  database:
-#    driver: locar
-#    driver_opts:
-#      tyoe: none
-#      device: /home/${USER}/data
+volumes:
+  website:
+    driver: local
+    driver_opts:
+      type: none
+      device: /hom/${USER}/data/website
+      o: bind
 
-#networks:
-#  inception_network:
-#    driver: bridge
-#secrets: 
+  database:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/${USER}/data/database
+
+networks:
+  inception_network:
+    driver: bridge
+
+secrets:
+  wp_db_root_password:
+    file: ../secrets/db_password.txt
+  wp_db_password:
+    file: ../secrets/db_root_password.txt
+  wp_user_password:
+    file: ../secrets/admin_password.txt
+  wp_admin_password:
+    file: ../secrets/user_password.txt
