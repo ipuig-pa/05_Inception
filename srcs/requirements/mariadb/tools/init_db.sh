@@ -17,26 +17,17 @@ if [ ! -f /run/secrets/db_root_password ]; then
 	exit 1
 fi
 
-DB_PASSWORD=$(cat /run/secrets/db_password)
-DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
+export DB_PASSWORD=$(cat /run/secrets/db_password)
+export DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
+
+envsubst < /usr/local/bin/init.sql > /tmp/init.sql
+mv /tmp/init.sql /usr/local/bin/init.sql
 
 echo -e "${YELLOW}Checking if MySQL data directory structure is already set up...${NC}"
 if [ ! -d "/var/lib/mysql/mysql" ]; then
 	echo -e "${YELLOW}Initializing MySQL data directory...${NC}"
 	mysql_install_db --user=mysql --datadir=/var/lib/mysql
-
-	service mysql start
-
-	echo -e "${YELLOW}Creating database and users...${NC}"
-	mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
-	mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';"
-	mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';"
-	mysql -e "FLUSH PRIVILEGES;"
-	mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASSWORD}';"
-	mysql -e "FLUSH PRIVILEGES;"
-
-	service mysql stop
 fi
 
-echo -e "${YELLOW}Starting MySQL server...${NC}"
-exec mysqld_safe
+echo -e "${YELLOW}Starting MySQL server with initialization...${NC}"
+exec mysqld --init-file=/usr/local/bin/init.sql
