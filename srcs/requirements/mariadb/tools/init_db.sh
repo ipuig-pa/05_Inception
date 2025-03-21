@@ -7,18 +7,18 @@ NC='\033[0m'
 
 echo -e "${YELLOW}Checking passwords...${NC}"
 
-if [ ! -f /run/secrets/wp_db_password ]; then
-	echo "${RED}Error: No wp_db_password found in secrets${NC}"
+if [ ! -f /run/secrets/db_password ]; then
+	echo "${RED}Error: No db_password found in secrets${NC}"
 	exit 1
 fi
 
-if [ ! -f /run/secrets/wp_db_root_password ]; then
-	echo "${RED}Error: No wp_db_root_password found in secrets${NC}"
+if [ ! -f /run/secrets/db_root_password ]; then
+	echo "${RED}Error: No db_root_password found in secrets${NC}"
 	exit 1
 fi
 
-MYSQL_PASSWORD=$(cat /run/secrets/wp_db_password)
-MYSQL_ROOT_PASSWORD=$(cat /run/secrets/wp_db_root_password)
+DB_PASSWORD=$(cat /run/secrets/db_password)
+DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
 echo -e "${YELLOW}Checking if MySQL data directory structure is already set up...${NC}"
 if [ ! -d "/var/lib/mysql/mysql" ]; then
@@ -28,10 +28,11 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 	service mysql start
 
 	echo -e "${YELLOW}Creating database and users...${NC}"
-	mysql -e "CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};"
-	mysql -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
-	mysql -e "GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';"
-	mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+	mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+	mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';"
+	mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';"
+	mysql -e "FLUSH PRIVILEGES;"
+	mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASSWORD}';"
 	mysql -e "FLUSH PRIVILEGES;"
 
 	service mysql stop

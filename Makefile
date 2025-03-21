@@ -1,6 +1,6 @@
 NAME = inception
 DOCKER_COMPOSE_FILE = srcs/docker-compose.yml
-DATA_PATH = /home/ipuig-pa/data
+DATA_PATH = /home/$(USER)/data
 
 CHECK_ENV_SCRIPT = srcs/requirements/tools/check_env.sh
 ENV_FILE = srcs/.env
@@ -12,8 +12,8 @@ check:
 	@./$(CHECK_ENV_SCRIPT) $(ENV_FILE)
 
 setup:
-	@mkdir -p $(DATA_PATH)/mariadb
-	@mkdir -p $(DATA_PATH)/wordpress
+	@mkdir -p $(DATA_PATH)/database
+	@mkdir -p $(DATA_PATH)/website
 
 build:
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) build

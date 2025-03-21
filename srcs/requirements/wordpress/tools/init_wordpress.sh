@@ -1,59 +1,55 @@
 #!/bin/bash
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
-
-if [ ! -f /run/secrets/wp_db_password ]; then
-	echo "${RED}Error: No wp_db_password found in secrets${NC}"
-	exit 1
-fi
-if [ ! -f /run/secrets/wp_user_password ]; then
-	echo "${RED}Error: No wp_user_password found in secrets${NC}"
+if [ ! -f /run/secrets/db_password ]; then
+	echo "Error: No db_password found in secrets"
 	exit 1
 fi
 if [ ! -f /run/secrets/wp_admin_password ]; then
-	echo "${RED}Error: No wp_admin_password found in secrets${NC}"
+	echo "Error: No wp_admin_password found in secrets"
+	exit 1
+fi
+if [ ! -f /run/secrets/wp_user_password ]; then
+	echo "Error: No wp_user_password found in secrets"
 	exit 1
 fi
 
-WP_DB_PASSWORD = $(cat /run/secrets/wp_db_password)
-WP_ADMIN_PASSWORD = $(cat /run/secrets/wp_admin_password)
+DB_PASSWORD=$(cat /run/secrets/db_password)
+WP_ADMIN_PASSWORD=$(cat /run/secrets/wp_admin_password)
+WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 
 while ! mysqladmin ping -h mariadb --silent; do
-	echo "${YELLOW}Waiting for MariaDB...${NC}"
+	echo "Waiting for MariaDB..."
 	sleep 1
 done
 
 mkdir -p /run/php
 
 if [ ! -f "/var/www/html/wp-config.php" ]; then
-	echo "${YELLOW}WordPress not found, downloading...${NC}"
+	echo "WordPress not found, downloading..."
 	wp core download	--allow-root
 
-	echo "${YELLOW}Creating wp-config.php...${NC}"
-	wp config create	--dbname=${MYSQL_DATABASE} \
-				--dbuser=${MYSQL_USER} \
-				--dbpass=${MYSQL_PASSWORD} \
-				--dbhost=mariadb \
-				--allow-root
+	echo "Creating wp-config.php..."
+	wp config create	--dbname=${DB_NAME} \
+						--dbuser=${DB_USER} \
+						--dbpass=${DB_PASSWORD} \
+						--dbhost=mariadb \
+						--allow-root
 
-	echo "${YELLOW}Installing WordPress...${NC}"
-	wp core install	--url=${DOMAIN_NAME} \
-			--title=${WP_TITLE} \
-			--admin_user=${WP_ADMIN_USER} \
-			--admin_password=${WP_ADMIN_PASSWORD} \
-			--admin_email=${WP_ADMIN_EMAIL} \
-			--allow-root
+	echo "Installing WordPress..."
+	wp core install		--url=${DOMAIN_NAME} \
+						--title=${WP_TITLE} \
+						--admin_user=${WP_ADMIN_USER} \
+						--admin_password=${WP_ADMIN_PASSWORD} \
+						--admin_email=${WP_ADMIN_EMAIL} \
+						--allow-root
 
-	echo "${YELLOW}Creating additional user...${NC}"
+	echo "Creating additional user..."
 	wp user create ${WP_USER} ${WP_USER_EMAIL} \
-			--user_pass=${WP_USER_PASSWORD} \
-			--role=author \
-			--allow-root
-	echo "${YELLOW}WordPress setup completed!${NC}"
+						--user_pass=${WP_USER_PASSWORD} \
+						--role=author \
+						--allow-root
+	echo "WordPress setup completed!"
 fi
 
-echo "${YELLOW}Starting PHP-FPM..."
+echo "Starting PHP-FPM..."
 exec php-fpm7.4 -F

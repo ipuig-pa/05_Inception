@@ -5,9 +5,9 @@ services:
     build:
       context: ./requirements/nginx
       dockerfile: Dockerfile
+      args:
+       - DOMAIN_NAME=${DOMAIN_NAME}
     container_name: nginx
-    environment:
-      - DOMAIN_NAME=${DOMAIN_NAME}
     volumes:
       - website:/var/www/html
     ports:
@@ -28,8 +28,8 @@ services:
     volumes:
       - database:/var/lib/mysql
     secrets:
-      - wp_db_root_password
-      - wp_db_password
+      - db_root_password
+      - db_password
     networks:
       - inception_network
     restart: always
@@ -43,8 +43,8 @@ services:
       - .env
     volumes:
       - website:/var/www/html
-      - database:/var/lib/mysql
     secrets:
+      - db_password
       - wp_user_password
       - wp_admin_password
     depends_on:
@@ -58,7 +58,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /hom/${USER}/data/website
+      device: /home/${USER}/data/website
       o: bind
 
   database:
@@ -66,17 +66,18 @@ volumes:
     driver_opts:
       type: none
       device: /home/${USER}/data/database
+      o: bind
 
 networks:
   inception_network:
     driver: bridge
 
 secrets:
-  wp_db_root_password:
+  db_password:
     file: ../secrets/db_password.txt
-  wp_db_password:
+  db_root_password:
     file: ../secrets/db_root_password.txt
-  wp_user_password:
-    file: ../secrets/admin_password.txt
   wp_admin_password:
-    file: ../secrets/user_password.txt
+    file: ../secrets/wp_admin_password.txt
+  wp_user_password:
+    file: ../secrets/wp_user_password.txt
