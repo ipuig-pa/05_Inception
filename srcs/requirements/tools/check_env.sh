@@ -27,8 +27,8 @@ source $ENV_FILE
 # Check required variables
 REQUIRED_VARS=(
 	"DOMAIN_NAME"
-	"MYSQL_DATABASE"
-	"MYSQL_USER"
+	"DB_NAME"
+	"DB_USER"
 	"WP_TITLE"
 	"WP_ADMIN_USER"
 	"WP_ADMIN_EMAIL"
